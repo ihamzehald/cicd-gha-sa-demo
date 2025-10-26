@@ -30,5 +30,5 @@ variable "allow_unauthenticated" {
 
 variable "project_id" {
   type    = string
-  default = "hd-github-actions-cicd"
+  default = "gcp-cicd-gha-sa"
 }

@@ -18,7 +18,7 @@ set -e
 # =====================================
 # ENV CONFIGURATION
 # =====================================
-PROJECT_ID="hd-github-actions-cicd"
+PROJECT_ID="gcp-cicd-gha-sa"
 REGION="europe-north1"
 ARTIFACT_REPO="cicd-gha-sa-images"
 SERVICE_ACCOUNT_NAME="cicd-gha-sa-deployer"
