@@ -1,0 +1,79 @@
+name: Deploy cicd-gha-sa to cloud run
+
+on:
+  push:
+    branches: [ master ]
+
+env:
+  PROJECT_ID: ${{ vars.PROJECT_ID }}
+  REGION: ${{ vars.REGION }}
+  ARTIFACT_REPO: ${{ vars.ARTIFACT_REPO }}
+  SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+  IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+  IMAGE_TAG: ${{ github.sha }}
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Configure Docker authentication for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build & push image (using tag)
+        env:
+          IMAGE_URI: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.ARTIFACT_REPO }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+        run: |
+          echo "IMAGE_URI=${IMAGE_URI}"
+          docker build -t "${IMAGE_URI}" .
+          docker push "${IMAGE_URI}"
+          echo "IMAGE_URI=${IMAGE_URI}" >> "$GITHUB_ENV"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      - name: Terraform Apply
+        working-directory: terraform
+        env:
+          TF_PROJECT_ID: ${{ env.PROJECT_ID }}
+          TF_REGION: ${{ env.REGION }}
+          TF_ARTIFACT_REPO: ${{ env.ARTIFACT_REPO }}
+          TF_SERVICE_NAME: ${{ env.SERVICE_NAME }}
+        run: |
+          terraform apply -auto-approve -input=false \
+            -var="project_id=${TF_PROJECT_ID}" \
+            -var="region=${TF_REGION}" \
+            -var="artifact_repo=${TF_ARTIFACT_REPO}" \
+            -var="service_name=${TF_SERVICE_NAME}" \
+            -var="image_uri=${IMAGE_URI}"
+
+      - name: Output service URL
+        working-directory: terraform
+        run: |
+          URL=$(terraform output -raw service_url)
+          echo "Deployed URL: $URL"
+          echo "SERVICE_URL=$URL" >> $GITHUB_ENV
+
+      - name: Job Summary
+        run: |
+          echo "### Cloud Run URL" >> $GITHUB_STEP_SUMMARY
+          echo "$SERVICE_URL" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,24 @@
+{
+  "name": "cicd-gha-sa",
+  "version": "1.0.0",
+  "description": "CI/CD Github actions uisng GCP SA Auth",
+  "main": "server.js",
+  "dependencies": { "express": "^4.19.2" },
+  "scripts": { "start": "node server.js" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ihamzehald/hd-cicd.git"
+  },
+  "keywords": [
+    "Git",
+    "hub",
+    "actions",
+    "CI/CD"
+  ],
+  "author": "Hamza.ald",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ihamzehald/hd-cicd/issues"
+  },
+  "homepage": "https://github.com/ihamzehald/hd-cicd#readme"
+}

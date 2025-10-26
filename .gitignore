@@ -1,0 +1,14 @@
+app/node_modules/*
+.secrets
+terraform/.terraform
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+crash.log.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+crash.log
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+crash.log
